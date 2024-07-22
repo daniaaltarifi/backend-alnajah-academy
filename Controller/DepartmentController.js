@@ -1,5 +1,6 @@
 const asyncHandler = require("../Middleware/asyncHandler.js");
 const db = require("../config.js");
+
 const addDepartment = asyncHandler(async (req, res) => {
   const { title, coupon } = req.body;
   const sqlInsert = "INSERT INTO department (title , coupon) VALUES (? , ?)";
