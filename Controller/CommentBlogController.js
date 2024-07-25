@@ -6,7 +6,9 @@ const addCommentBlog=asyncHandler(async(req,res)=>{
     const defaultAction = 'not approved'; // Replace with your default action value
 
     const sqlInsert = 'INSERT INTO commentBlog (name, email, comment, blog_id, action) VALUES (?, ?, ?, ?, ?)';
-    db.query(sqlInsert,[name,email,comment,blog_id,defaultAction],(err,result)=>{
+    db.query(sqlInsert,[name,email,comment,blog_id,defaultAction
+        
+    ],(err,result)=>{
         if(err){
             return res.json({message:err.message})
         }
