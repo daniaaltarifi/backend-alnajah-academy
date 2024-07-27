@@ -18,6 +18,8 @@ const upload = multer({ storage: storage });
 router.post('/add', upload.fields([{ name: 'img', maxCount: 1 },{ name: 'defaultvideo', maxCount: 1 },{ name: 'url', maxCount: 10 }]), CoursesController.addCourse);
 router.get('/', CoursesController.getcourses);
 router.get('/getbyvideo/:id', CoursesController.getVideoById);
+router.get('/teacher/:teacherId/count',CoursesController.getNumberOfCoursesByTeacher);
+
 router.get('/:id', CoursesController.getCourseById);
 
 module.exports = router;

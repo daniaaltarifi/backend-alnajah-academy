@@ -112,7 +112,17 @@ const getcourses = asyncHandler(async (req, res) => {
     res.status(200).json(result);
   });
 });
-
+const getVideoDuration = (videoUrl) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(videoUrl, (err, metadata) => {
+      if (err) {
+        return reject(err);
+      }
+      const duration = metadata.format.duration;
+      resolve(duration);
+    });
+  });
+};
 const getVideoById = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const sqlSelect = `
@@ -145,6 +155,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     });
 });
 
+
 const getCourseById=asyncHandler(async(req,res)=>{
     const { id } = req.params;
     const sqlSelect = `
@@ -166,41 +177,25 @@ const getCourseById=asyncHandler(async(req,res)=>{
         res.status(200).json(result);
     });
 })
-// const getVideoById = asyncHandler(async (req, res) => {
-//     const courseId = req.params.course_id;
-//     const query = `
-//         SELECT courses.course_id, courses.title AS course_title,
-//                videos.video_id, videos.title AS video_title, videos.url
-//         FROM courses
-//         LEFT JOIN videos ON courses.course_id = videos.course_id
-//         WHERE courses.course_id = ?
-//     `;
-    
-//     db.query(query, [courseId], (err, results) => {
-//         if (err) {
-//             console.error('Error fetching course videos:', err);
-//             res.status(500).json({ error: 'Error fetching course videos' });
-//             return;
-//         }
-        
-//         if (results.length === 0) {
-//             res.status(404).json({ error: 'Course not found' });
-//             return;
-//         }
-        
-//         // Format the response
-//         const course = {
-//             course_id: results[0].course_id,
-//             title: results[0].course_title,
-//             videos: results.map(row => ({
-//                 video_id: row.video_id,
-//                 title: row.video_title,
-//                 url: row.url
-//             }))
-//         };
-        
-//         res.json(course);
-//     });
-// });
+const getNumberOfCoursesByTeacher = asyncHandler(async (req, res) => {
+  const { teacherId } = req.params;
 
-module.exports = { addCourse, getcourses ,getVideoById,getCourseById};
+  const sqlSelect = `
+    SELECT COUNT(*) AS course_count
+    FROM courses
+    WHERE teacher_id = ?`;
+
+  db.query(sqlSelect, [teacherId], (err, result) => {
+    if (err) {
+      console.error('Error fetching number of courses: ' + err.message);
+      return res.status(500).json({ message: "Error fetching number of courses" });
+    }
+
+    // Assuming the result contains a single row with the count
+    const courseCount = result[0].course_count;
+    res.status(200).json({ courseCount });
+  });
+});
+
+
+module.exports = { addCourse, getcourses ,getVideoById,getCourseById,getNumberOfCoursesByTeacher};

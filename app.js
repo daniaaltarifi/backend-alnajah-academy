@@ -16,6 +16,8 @@ const CommentBlogRouter = require('./Router/CommentBlogRouter.js')
 const CommentCourseRouter = require('./Router/CommentCourseRouter.js')
 const UserRouter = require('./Router/UserRouter.js')
 const CommentRoutes = require('./Router/CommentRoutes.js')
+const ProfileRouter = require('./Router/ProfileRouter.js');
+
 const app = express();
 const PORT= process.env.PORT || 3005
 app.use(express.json());
@@ -34,6 +36,8 @@ app.use('/commentblog',CommentBlogRouter)
 app.use('/commentcourse',CommentCourseRouter)
 app.use('/connects',CommentRoutes)
 app.use('/api',UserRouter)
+app.use('/api', ProfileRouter);
+
 app.get ('/',(req,res)=>{
     res.send("Welcome to alnajah academy! ")
 })
