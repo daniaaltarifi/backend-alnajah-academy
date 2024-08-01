@@ -19,5 +19,7 @@ router.get('/', TeacherController.getTeacher);
 router.get('/:id', TeacherController.getTeacherById);
 router.put('/update/:id',upload.fields([ { name: 'img', maxCount: 1 }]), TeacherController.updateTeacher);
 router.delete('/delete/:id', TeacherController.deleteTeacher);
+router.get('/student-counts/:id',TeacherController.getStudentCountForTeacher);
+
 
 module.exports=router

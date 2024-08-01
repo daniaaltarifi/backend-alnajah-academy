@@ -136,4 +136,39 @@ const deleteTeacher = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = {addTeacherAndcourses,getTeacher,getTeacherById,updateTeacher,deleteTeacher};
+
+
+
+
+const getStudentCountForTeacher = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const sqlSelect = `
+     SELECT t.id,  COUNT(ts.student_id) AS student_count
+    FROM teacher t
+    JOIN teacher_students ts ON t.id = ts.teacher_id
+    WHERE t.id = ?
+    GROUP BY t.id;
+  `;
+
+  db.query(sqlSelect, [id], (err, result) => {
+    if (err) {
+      console.error('Failed to fetch student count for teacher:', err);
+      return res.status(500).send({
+        error: 'Failed to fetch student count for teacher',
+        message: err.message,
+      });
+    }
+
+    console.log('Query result:', result); // Log the result
+
+    if (result.length === 0) {
+      return res.status(404).send({
+        message: 'No students found for this teacher',
+      });
+    }
+
+    res.status(200).json(result[0]); // Return the first result object
+  });
+});
+module.exports = {addTeacherAndcourses,getTeacher,getTeacherById,updateTeacher,deleteTeacher ,getStudentCountForTeacher};

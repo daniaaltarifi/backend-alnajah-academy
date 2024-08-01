@@ -1,3 +1,4 @@
+
 const express= require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -15,7 +16,9 @@ const LibraryRouter = require('./Router/LibraryRouter.js')
 const CommentBlogRouter = require('./Router/CommentBlogRouter.js')
 const CommentCourseRouter = require('./Router/CommentCourseRouter.js')
 const UserRouter = require('./Router/UserRouter.js')
-const CommentRoutes = require('./Router/CommentRoutes.js')
+const profileRoutes = require('./Router/profileRoutes.js');
+const CommentRoutes = require('./Router/CommentRoutes.js');
+const AvailableCardsRouter= require('./Router/AvailableCardsRouter.js');
 const app = express();
 const PORT= process.env.PORT || 3005
 app.use(express.json());
@@ -34,6 +37,11 @@ app.use('/commentblog',CommentBlogRouter)
 app.use('/commentcourse',CommentCourseRouter)
 app.use('/connects',CommentRoutes)
 app.use('/api',UserRouter)
+app.use('/api', profileRoutes);
+app.use('/cards', AvailableCardsRouter)
+
+
+
 app.get ('/',(req,res)=>{
     res.send("Welcome to alnajah academy! ")
 })

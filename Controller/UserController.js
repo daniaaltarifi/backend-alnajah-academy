@@ -4,10 +4,10 @@ const db = require("../config.js");
 
 const User = {};
 
-User.create = (name, email, password, role, callback) => {
+User.create = (name, email, password, role,img, callback) => {
  
-  const query = 'INSERT INTO users (name, email,  password, role) VALUES (?, ?, ?, ?)';
-  db.execute(query, [name, email,  password, role], (err, result) => {
+  const query = 'INSERT INTO users (name, email,  password, role, img) VALUES (?, ?, ?, ?, ?)';
+  db.execute(query, [name, email,  password, role, img], (err, result) => {
     if (err) return callback(err);
     callback(null, result);
   });

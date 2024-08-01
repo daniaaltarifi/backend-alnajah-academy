@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const CoursesController = require('../Controller/CoursesController.js');
+const CoursesController = require('../Controller/CoursesController');
 const multer = require('multer');
 const path = require('path');
 
@@ -19,5 +19,10 @@ router.post('/add', upload.fields([{ name: 'img', maxCount: 1 },{ name: 'default
 router.get('/', CoursesController.getcourses);
 router.get('/getbyvideo/:id', CoursesController.getVideoById);
 router.get('/:id', CoursesController.getCourseById);
+router.get('/users-counts/:id', CoursesController.getUserCountForCourse);
+
+router.get('/course-counts/:id', CoursesController.getCourseCountByTeacher);
+router.get('/lesson-counts/:id', CoursesController.getLessonCountForCourses);
+
 
 module.exports = router;

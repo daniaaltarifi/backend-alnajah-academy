@@ -5,7 +5,8 @@ const User = require('../Controller/UserController');
 exports.register = (req, res) => {
   const { name, email, password, confirmPassword, role } = req.body;
 
-
+// const img='./images/acc_icon.png';
+const img = req.file ? req.file.path : 'acc_icon.png'; // Default image path
 
 
   if (password !== confirmPassword) {
@@ -14,7 +15,7 @@ exports.register = (req, res) => {
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) return res.status(500).send(err);
 
-    User.create(name, email, hash, role, (err, result) => {
+    User.create(name, email, hash, role,img, (err, result) => {
       const userId = result.insertId;
       if (err) return res.status(500).send(err);
       res.status(201).json({ message: 'User registered', id: userId });

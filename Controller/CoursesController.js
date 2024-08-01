@@ -1,5 +1,5 @@
 const asyncHandler = require("../Middleware/asyncHandler.js");
-
+const fs = require('fs');
 const db = require("../config.js");
 
 const addCourse = asyncHandler(async (req, res) => {
@@ -86,6 +86,7 @@ const addCourse = asyncHandler(async (req, res) => {
           message: "Course added successfully, but no videos provided",
         });
       }
+      
     }
   );
 });
@@ -110,6 +111,134 @@ const getcourses = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(result);
+  });
+});
+
+
+
+
+
+
+const getCourseById=asyncHandler(async(req,res)=>{
+  const { id } = req.params;
+  const sqlSelect = `
+  SELECT courses.*,  
+         department.title AS department_name,
+         teacher.teacher_name AS teacher_name,
+         teacher.descr AS teacher_descr,
+         teacher.img AS teacher_img
+  FROM courses
+  LEFT JOIN department ON courses.department_id = department.id
+  LEFT JOIN teacher ON courses.teacher_id = teacher.id
+  WHERE courses.id = ?`;
+  
+  db.query(sqlSelect,[id],(err,result)=>{
+      if(err){
+          console.error('Error fetching course data: '+err.message);
+          return res.status(500).json({message:"Error fetching course data"});
+      }
+      res.status(200).json(result);
+  });
+})
+
+const getcoursesCount = asyncHandler(async (req, res) => {
+  const sqlSelect = `
+  SELECT 
+    courses.*, 
+    department.title AS department_name, 
+    teacher.teacher_name AS teacher_name,
+    teacher.descr AS teacher_descr,
+    teacher.img AS teacher_img,
+    DATE_FORMAT(courses.created_at, '%Y-%m-%d') AS created_date,
+    (SELECT COUNT(*) FROM courses c WHERE c.teacher_id = teacher.id) AS course_count
+  FROM 
+    courses
+  JOIN 
+    department ON courses.department_id = department.id
+  JOIN 
+    teacher ON courses.teacher_id = teacher.id
+`;
+
+db.query(sqlSelect, (err, result) => {
+  if (err) {
+    return res.status(500).json({ message: err.message });
+  }
+
+  res.status(200).json(result);
+});
+});
+
+
+
+const getCourseCountByTeacher = asyncHandler(async (req, res) => {
+  const { id } = req.params; // Get the teacher id from the request parameters
+  const sqlSelect = `
+    SELECT 
+      COUNT(courses.id) AS course_count
+    FROM 
+      teacher
+    LEFT JOIN 
+      courses ON teacher.id = courses.teacher_id
+    WHERE 
+      teacher.id = ?
+    GROUP BY 
+      teacher.id, teacher.teacher_name
+  `;
+
+
+  db.query(sqlSelect, [id], (err, result) => {
+    if (err) {
+      console.error('Failed to fetch teacher course counts:', err);
+      return res.status(500).send({
+        error: 'Failed to fetch teacher course counts',
+        message: err.message,
+      });
+    }
+
+    console.log('Query result:', result); // Log the result
+
+    res.status(200).json(result);
+  });
+});
+
+
+
+
+
+
+  const getUserCountForCourse = asyncHandler(async (req, res) => {
+    const { id} = req.params; 
+
+    if (!id) {
+      return res.status(400).send({
+        error: 'Course ID is required',
+      });
+    }
+  
+    console.log('Received course_id:',id); // Log the received course_id
+  
+  
+    const sqlSelect = `
+      SELECT c.id, COUNT(cu.user_id) AS student_count
+      FROM course_users cu
+      JOIN courses c ON cu.course_id = c.id
+      WHERE c.id = ?
+      GROUP BY c.id;
+    `;
+  
+  
+  db.query(sqlSelect, [id], (err, result) => {
+    if (err) {
+      console.error('Failed to fetch user count for course:', err);
+      return res.status(500).send({
+        error: 'Failed to fetch user count for course',
+        message: err.message,
+      });
+    }
+
+    console.log('Query result:', result); // Log the result
+
+    res.status(200).json(result[0]); // Return the first result object
   });
 });
 
@@ -145,62 +274,49 @@ const getVideoById = asyncHandler(async (req, res) => {
     });
 });
 
-const getCourseById=asyncHandler(async(req,res)=>{
-    const { id } = req.params;
-    const sqlSelect = `
-    SELECT courses.*,  
-           department.title AS department_name,
-           teacher.teacher_name AS teacher_name,
-           teacher.descr AS teacher_descr,
-           teacher.img AS teacher_img
-    FROM courses
-    LEFT JOIN department ON courses.department_id = department.id
-    LEFT JOIN teacher ON courses.teacher_id = teacher.id
-    WHERE courses.id = ?`;
-    
-    db.query(sqlSelect,[id],(err,result)=>{
-        if(err){
-            console.error('Error fetching course data: '+err.message);
-            return res.status(500).json({message:"Error fetching course data"});
-        }
-        res.status(200).json(result);
-    });
-})
-// const getVideoById = asyncHandler(async (req, res) => {
-//     const courseId = req.params.course_id;
-//     const query = `
-//         SELECT courses.course_id, courses.title AS course_title,
-//                videos.video_id, videos.title AS video_title, videos.url
-//         FROM courses
-//         LEFT JOIN videos ON courses.course_id = videos.course_id
-//         WHERE courses.course_id = ?
-//     `;
-    
-//     db.query(query, [courseId], (err, results) => {
-//         if (err) {
-//             console.error('Error fetching course videos:', err);
-//             res.status(500).json({ error: 'Error fetching course videos' });
-//             return;
-//         }
-        
-//         if (results.length === 0) {
-//             res.status(404).json({ error: 'Course not found' });
-//             return;
-//         }
-        
-//         // Format the response
-//         const course = {
-//             course_id: results[0].course_id,
-//             title: results[0].course_title,
-//             videos: results.map(row => ({
-//                 video_id: row.video_id,
-//                 title: row.video_title,
-//                 url: row.url
-//             }))
-//         };
-        
-//         res.json(course);
-//     });
-// });
 
-module.exports = { addCourse, getcourses ,getVideoById,getCourseById};
+
+const getLessonCountForCourses = asyncHandler(async (req, res) => {
+  const { id} = req.params; 
+
+  if (!id) {
+    return res.status(400).send({
+      error: 'Course ID is required',
+    });
+  }
+
+  console.log('Received course_id:',id); // Log the received course_id
+
+  const sqlSelect = `
+    SELECT course_id, COUNT(title) AS lesson_count
+    FROM videos
+     WHERE 
+      course_id = ?
+    GROUP BY course_id;
+  `;
+
+  db.query(sqlSelect, [id], (err, result) => {
+    if (err) {
+      console.error('Failed to fetch lesson count for courses:', err);
+      return res.status(500).send({
+        error: 'Failed to fetch lesson count for courses',
+        message: err.message,
+      });
+    }
+
+    console.log('Query result:', result); // Log the result
+
+    if (result.length === 0) {
+      console.warn('No lessons found');
+      return res.status(404).send({
+        message: 'No lessons found',
+      });
+    }
+
+    res.status(200).json(result); // Return the result
+  });
+});
+
+
+
+module.exports = { addCourse, getcourses ,getVideoById,getCourseById ,getCourseCountByTeacher ,getcoursesCount ,getUserCountForCourse ,getLessonCountForCourses};
