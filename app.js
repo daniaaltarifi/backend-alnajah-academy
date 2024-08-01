@@ -19,6 +19,9 @@ const UserRouter = require('./Router/UserRouter.js')
 const profileRoutes = require('./Router/profileRoutes.js');
 const CommentRoutes = require('./Router/CommentRoutes.js');
 const AvailableCardsRouter= require('./Router/AvailableCardsRouter.js');
+const CommentRoutes = require('./Router/CommentRoutes.js')
+const ProfileRouter = require('./Router/ProfileRouter.js');
+
 const app = express();
 const PORT= process.env.PORT || 3005
 app.use(express.json());
@@ -41,6 +44,7 @@ app.use('/api', profileRoutes);
 app.use('/cards', AvailableCardsRouter)
 
 
+app.use('/api', ProfileRouter);
 
 app.get ('/',(req,res)=>{
     res.send("Welcome to alnajah academy! ")

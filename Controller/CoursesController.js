@@ -242,6 +242,17 @@ const getCourseCountByTeacher = asyncHandler(async (req, res) => {
   });
 });
 
+const getVideoDuration = (videoUrl) => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(videoUrl, (err, metadata) => {
+      if (err) {
+        return reject(err);
+      }
+      const duration = metadata.format.duration;
+      resolve(duration);
+    });
+  });
+};
 const getVideoById = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const sqlSelect = `
@@ -314,6 +325,45 @@ const getLessonCountForCourses = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(result); // Return the result
+
+const getCourseById=asyncHandler(async(req,res)=>{
+    const { id } = req.params;
+    const sqlSelect = `
+    SELECT courses.*,  
+           department.title AS department_name,
+           teacher.teacher_name AS teacher_name,
+           teacher.descr AS teacher_descr,
+           teacher.img AS teacher_img
+    FROM courses
+    LEFT JOIN department ON courses.department_id = department.id
+    LEFT JOIN teacher ON courses.teacher_id = teacher.id
+    WHERE courses.id = ?`;
+    
+    db.query(sqlSelect,[id],(err,result)=>{
+        if(err){
+            console.error('Error fetching course data: '+err.message);
+            return res.status(500).json({message:"Error fetching course data"});
+        }
+        res.status(200).json(result);
+    });
+})
+const getNumberOfCoursesByTeacher = asyncHandler(async (req, res) => {
+  const { teacherId } = req.params;
+
+  const sqlSelect = `
+    SELECT COUNT(*) AS course_count
+    FROM courses
+    WHERE teacher_id = ?`;
+
+  db.query(sqlSelect, [teacherId], (err, result) => {
+    if (err) {
+      console.error('Error fetching number of courses: ' + err.message);
+      return res.status(500).json({ message: "Error fetching number of courses" });
+    }
+
+    // Assuming the result contains a single row with the count
+    const courseCount = result[0].course_count;
+    res.status(200).json({ courseCount });
   });
 });
 
